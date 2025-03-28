@@ -67,8 +67,6 @@ pub fn process(program: Program, metadata: TransformPluginProgramMetadata) -> Pr
                 if p.is_match(filename) {
                     println!("File is excluded from coverage: {}", filename);
                     return program;
-                } else {
-                    println!("File is not excluded from coverage: {}", filename);
                 }
             }
             Err(e) => {

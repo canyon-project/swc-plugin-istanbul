@@ -3,9 +3,8 @@
   "jsc": {
     "experimental":{
       "plugins": [
-        ["swc-plugin-coverage-instrument", {}],
         ["./swc_plugin_istanbul.wasm",{
-            "unstableExclude": ["features/add.js"],
+            "unstableExclude": ["**/node_modules/**"],
             "dsn":"http://localhost:3000",
             "reporter":"1",
             "instrumentCwd":"./src",
