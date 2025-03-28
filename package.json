@@ -1,0 +1,18 @@
+{
+  "name": "swc-plugin-istanbul",
+  "version": "0.0.1-beta.0",
+  "description": "A SWC plugin cooperates with istanbul to report the coverage",
+  "main": "swc_plugin_istanbul.wasm",
+  "scripts": {
+    "test": "npm run prepack && swc features -d dist",
+    "prepack": "cargo build --release -p swc_plugin_istanbul --target wasm32-wasip1 && cp ./target/wasm32-wasip1/release/swc_plugin_istanbul.wasm ."
+  },
+  "files": [
+    "swc_plugin_istanbul.wasm"
+  ],
+  "devDependencies": {
+    "@swc/cli": "*",
+    "@swc/core": "1.4.0",
+    "swc-plugin-coverage-instrument": "0.0.24"
+  }
+}
