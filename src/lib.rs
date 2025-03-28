@@ -1,3 +1,4 @@
+use std::path::Path;
 use swc_core::{
     ecma::{ast::Program, visit::*},
     plugin::{
@@ -41,11 +42,29 @@ fn initialize_instrumentation_log(log_options: &InstrumentLogOptions) {
 #[plugin_transform]
 pub fn process(program: Program, metadata: TransformPluginProgramMetadata) -> Program {
     let filename = metadata.get_context(&TransformPluginMetadataContextKind::Filename);
+    let cwd = metadata.get_context(&TransformPluginMetadataContextKind::Cwd);
+
     let filename = if let Some(filename) = filename.as_deref() {
         filename
     } else {
         "unknown.js"
     };
+
+    let cwd = if let Some(cwd) = cwd.as_deref() {
+        cwd
+    } else {
+        ""
+    };
+
+    let relative_filename = Path::new(filename)
+        .strip_prefix(Path::new(cwd))
+        .ok()
+        .and_then(|p| p.to_str())
+        .unwrap_or(filename);
+
+    println!("relative_filename: {}", relative_filename);
+    println!("filename: {}", filename);
+    println!("cwd: {}", cwd);
 
     let plugin_config = metadata.get_transform_plugin_config();
     let instrument_options: InstrumentOptions = if let Some(plugin_config) = plugin_config {
@@ -64,8 +83,8 @@ pub fn process(program: Program, metadata: TransformPluginProgramMetadata) -> Pr
     if let Some(exclude) = &instrument_options.unstable_exclude {
         match wax::any(exclude.iter().map(|s| s.as_ref()).collect::<Vec<&str>>()) {
             Ok(p) => {
-                if p.is_match(filename) {
-                    println!("File is excluded from coverage: {}", filename);
+                if p.is_match(relative_filename) {
+                    println!("File is excluded from coverage: {}", relative_filename);
                     return program;
                 }
             }

@@ -4,7 +4,7 @@
     "experimental":{
       "plugins": [
         ["./swc_plugin_istanbul.wasm",{
-            "unstableExclude": ["**/node_modules/**"],
+            "unstableExclude": ["node_modules/**"],
             "dsn":"http://localhost:3000",
             "reporter":"1",
             "instrumentCwd":"./src",
