@@ -8,6 +8,7 @@ repository  = "https://github.com/canyon-project/swc-plugin-istanbul"
 version     = "0.0.1"
 
 [dependencies]
+indexmap       = { workspace = true }
 once_cell      = { workspace = true }
 regex          = "1.8.1"
 serde          = { workspace = true, features = ["derive"] }
