@@ -1,0 +1,18 @@
+{
+  "name": "swc-plugin-istanbul",
+  "version": "0.0.1-beta.3",
+  "description": "",
+  "main": "./target/wasm32-wasip1/release/swc_plugin_coverage.wasm",
+  "files": [
+    "package.json",
+    "README.md",
+    "LICENSE",
+    "target/wasm32-wasip1/release/swc_plugin_coverage.wasm"
+  ],
+  "scripts": {
+    "build": "cargo build -p swc-plugin-coverage --target wasm32-wasip1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT"
+}
