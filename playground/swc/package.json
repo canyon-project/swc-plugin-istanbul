@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "pretest": "node generate-swcrc.js",
     "test": "swc ./src -d dist"
   },
   "keywords": [],
