@@ -14,3 +14,5 @@ trace-*.json
 Cargo.lock
 
 .idea
+
+pnpm-lock.yaml
