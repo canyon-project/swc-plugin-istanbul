@@ -1,0 +1,20 @@
+{
+  "name": "babel",
+  "version": "1.0.5",
+  "description": "",
+  "scripts": {
+    "test": "babel src --config-file ./test-babel-config.js --out-dir dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/cli": "^7.24.1",
+    "babel-plugin-istanbul": "latest"
+  },
+  "dependencies": {
+    "@babel/core": "^7.25.6",
+    "@babel/helper-plugin-utils": "^7.0.0",
+    "json-stable-stringify": "^1.3.0"
+  }
+}
