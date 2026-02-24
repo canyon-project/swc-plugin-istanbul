@@ -9,6 +9,7 @@ use swc_core::{
         visit::{VisitMut, VisitMutWith},
     },
 };
+use serde_json;
 
 use crate::source_coverage::{Range, SourceCoverage};
 use crate::coverage_template;
@@ -19,6 +20,7 @@ pub struct CoverageVisitor {
     cov: RefCell<SourceCoverage>,
     cov_fn_ident: Ident,
     get_range: Box<dyn Fn(&Span) -> Range + Send + Sync>,
+    ast_json: RefCell<Option<String>>,
 }
 
 impl CoverageVisitor {
@@ -31,6 +33,7 @@ impl CoverageVisitor {
             filename,
             cov: RefCell::new(SourceCoverage::new()),
             get_range,
+            ast_json: RefCell::new(None),
         }
     }
 
@@ -41,13 +44,31 @@ impl CoverageVisitor {
     /// 创建覆盖率初始化语句
     fn create_coverage_init_stmts(&self) -> Vec<Stmt> {
         let cov = self.cov.borrow();
-        coverage_template::create_coverage_init_stmts(&self.filename, &self.cov_fn_ident, &cov)
+        let ast_json = self.ast_json.borrow();
+        coverage_template::create_coverage_init_stmts(
+            &self.filename, 
+            &self.cov_fn_ident, 
+            &cov,
+            ast_json.as_deref()
+        )
     }
 }
 
 impl VisitMut for CoverageVisitor {
     fn visit_mut_program(&mut self, program: &mut Program) {
         println!("=== visit_mut_program: 开始处理程序 ===");
+        
+        // 序列化 AST 为 JSON
+        match serde_json::to_string(program) {
+            Ok(json) => {
+                println!("  -> AST 序列化成功，长度: {} 字节", json.len());
+                *self.ast_json.borrow_mut() = Some(json);
+            }
+            Err(e) => {
+                println!("  -> AST 序列化失败: {}", e);
+            }
+        }
+        
         program.visit_mut_children_with(self);
 
         let stmts = self.create_coverage_init_stmts();

@@ -21,6 +21,7 @@ swc_core = { workspace = true, features = [
   "ecma_visit",
   "ecma_utils",
   "ecma_ast",
+  "ecma_ast_serde",
 ] }
 tracing = "0.1.37"
 

@@ -66,7 +66,7 @@ fn create_range_object_lit(range: &Range) -> Expr {
 }
 
 /// 创建覆盖率数据对象
-fn create_coverage_data_object(filename: &str, cov: &SourceCoverage) -> Expr {
+fn create_coverage_data_object(filename: &str, cov: &SourceCoverage, ast_json: Option<&str>) -> Expr {
     // statementMap: { "0": { start, end }, ... }
     let statement_map_props: Vec<PropOrSpread> = cov
         .statement_map
@@ -103,60 +103,87 @@ fn create_coverage_data_object(filename: &str, cov: &SourceCoverage) -> Expr {
         })
         .collect();
 
+    let mut props = vec![
+        PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
+            key: PropName::Ident(Ident::new("path".into(), DUMMY_SP, Default::default()).into()),
+            value: Box::new(Expr::Lit(Lit::Str(Str {
+                value: filename.into(),
+                span: DUMMY_SP,
+                raw: Some(format!(r#""{}""#, filename).into()),
+            }))),
+        }))),
+        PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
+            key: PropName::Ident(Ident::new("statementMap".into(), DUMMY_SP, Default::default()).into()),
+            value: Box::new(Expr::Object(ObjectLit {
+                span: DUMMY_SP,
+                props: statement_map_props,
+            })),
+        }))),
+        PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
+            key: PropName::Ident(Ident::new("fnMap".into(), DUMMY_SP, Default::default()).into()),
+            value: Box::new(Expr::Object(ObjectLit {
+                span: DUMMY_SP,
+                props: vec![],
+            })),
+        }))),
+        PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
+            key: PropName::Ident(Ident::new("branchMap".into(), DUMMY_SP, Default::default()).into()),
+            value: Box::new(Expr::Object(ObjectLit {
+                span: DUMMY_SP,
+                props: vec![],
+            })),
+        }))),
+        PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
+            key: PropName::Ident(Ident::new("s".into(), DUMMY_SP, Default::default()).into()),
+            value: Box::new(Expr::Object(ObjectLit {
+                span: DUMMY_SP,
+                props: s_props,
+            })),
+        }))),
+        PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
+            key: PropName::Ident(Ident::new("f".into(), DUMMY_SP, Default::default()).into()),
+            value: Box::new(Expr::Object(ObjectLit {
+                span: DUMMY_SP,
+                props: vec![],
+            })),
+        }))),
+        PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
+            key: PropName::Ident(Ident::new("b".into(), DUMMY_SP, Default::default()).into()),
+            value: Box::new(Expr::Object(ObjectLit {
+                span: DUMMY_SP,
+                props: vec![],
+            })),
+        }))),
+    ];
+
+    // 添加 ast 字段（如果有的话）
+    if let Some(ast_str) = ast_json {
+        props.push(PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
+            key: PropName::Ident(Ident::new("ast".into(), DUMMY_SP, Default::default()).into()),
+            value: Box::new(Expr::Call(CallExpr {
+                span: DUMMY_SP,
+                ctxt: Default::default(),
+                callee: Callee::Expr(Box::new(Expr::Member(MemberExpr {
+                    span: DUMMY_SP,
+                    obj: Box::new(Expr::Ident(Ident::new("JSON".into(), DUMMY_SP, Default::default()))),
+                    prop: MemberProp::Ident(Ident::new("parse".into(), DUMMY_SP, Default::default()).into()),
+                }))),
+                args: vec![ExprOrSpread {
+                    spread: None,
+                    expr: Box::new(Expr::Lit(Lit::Str(Str {
+                        value: ast_str.into(),
+                        span: DUMMY_SP,
+                        raw: None,
+                    }))),
+                }],
+                type_args: None,
+            })),
+        }))));
+    }
+
     Expr::Object(ObjectLit {
         span: DUMMY_SP,
-        props: vec![
-            PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
-                key: PropName::Ident(Ident::new("path".into(), DUMMY_SP, Default::default()).into()),
-                value: Box::new(Expr::Lit(Lit::Str(Str {
-                    value: filename.into(),
-                    span: DUMMY_SP,
-                    raw: Some(format!(r#""{}""#, filename).into()),
-                }))),
-            }))),
-            PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
-                key: PropName::Ident(Ident::new("statementMap".into(), DUMMY_SP, Default::default()).into()),
-                value: Box::new(Expr::Object(ObjectLit {
-                    span: DUMMY_SP,
-                    props: statement_map_props,
-                })),
-            }))),
-            PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
-                key: PropName::Ident(Ident::new("fnMap".into(), DUMMY_SP, Default::default()).into()),
-                value: Box::new(Expr::Object(ObjectLit {
-                    span: DUMMY_SP,
-                    props: vec![],
-                })),
-            }))),
-            PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
-                key: PropName::Ident(Ident::new("branchMap".into(), DUMMY_SP, Default::default()).into()),
-                value: Box::new(Expr::Object(ObjectLit {
-                    span: DUMMY_SP,
-                    props: vec![],
-                })),
-            }))),
-            PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
-                key: PropName::Ident(Ident::new("s".into(), DUMMY_SP, Default::default()).into()),
-                value: Box::new(Expr::Object(ObjectLit {
-                    span: DUMMY_SP,
-                    props: s_props,
-                })),
-            }))),
-            PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
-                key: PropName::Ident(Ident::new("f".into(), DUMMY_SP, Default::default()).into()),
-                value: Box::new(Expr::Object(ObjectLit {
-                    span: DUMMY_SP,
-                    props: vec![],
-                })),
-            }))),
-            PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
-                key: PropName::Ident(Ident::new("b".into(), DUMMY_SP, Default::default()).into()),
-                value: Box::new(Expr::Object(ObjectLit {
-                    span: DUMMY_SP,
-                    props: vec![],
-                })),
-            }))),
-        ],
+        props,
     })
 }
 
@@ -194,7 +221,7 @@ fn compute_hash(_filename: &str, cov: &SourceCoverage) -> String {
 ///   var hash = "...";
 ///   var global = new Function("return this")();
 ///   var gcv = "__coverage__";
-///   var coverageData = { ... };
+///   var coverageData = { ..., ast: JSON.parse("...") };
 ///   var coverage = global[gcv] || (global[gcv] = {});
 ///   if (!coverage[path] || coverage[path].hash !== hash) {
 ///     coverage[path] = coverageData;
@@ -207,6 +234,7 @@ fn create_coverage_fn_decl(
     filename: &str,
     cov_fn_ident: &Ident,
     cov: &SourceCoverage,
+    ast_json: Option<&str>,
 ) -> Stmt {
     println!("  === create_coverage_fn_decl ===");
     let mut stmts = vec![];
@@ -278,10 +306,13 @@ fn create_coverage_fn_decl(
 
     // 5. var coverageData = { ... };
     println!("    [5] 创建 var coverageData = {{ ... }} (包含 {} 个语句)", cov.statement_map.len());
+    if ast_json.is_some() {
+        println!("    [5] 包含 AST JSON 数据");
+    }
     let ident_coverage_data = Ident::new("coverageData".into(), DUMMY_SP, Default::default());
     stmts.push(create_assignment_stmt(
         &ident_coverage_data,
-        create_coverage_data_object(filename, cov),
+        create_coverage_data_object(filename, cov, ast_json),
     ));
 
     // 6. var coverage = global[gcv] || (global[gcv] = {});
@@ -472,15 +503,19 @@ pub fn create_coverage_init_stmts(
     filename: &str,
     cov_fn_ident: &Ident,
     cov: &SourceCoverage,
+    ast_json: Option<&str>,
 ) -> Vec<Stmt> {
     println!("=== create_coverage_init_stmts ===");
     println!("  filename: {}", filename);
     println!("  cov_fn_ident: {:?}", cov_fn_ident.sym);
     println!("  语句数量: {}", cov.statement_map.len());
+    if let Some(json) = ast_json {
+        println!("  AST JSON 长度: {} 字节", json.len());
+    }
     
     let stmts = vec![
         // function cov_xxx() { ... }
-        create_coverage_fn_decl(filename, cov_fn_ident, cov),
+        create_coverage_fn_decl(filename, cov_fn_ident, cov, ast_json),
         // cov_xxx();
         Stmt::Expr(ExprStmt {
             span: DUMMY_SP,
