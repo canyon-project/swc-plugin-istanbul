@@ -1,6 +1,6 @@
 {
   "name": "swc-plugin-istanbul",
-  "version": "0.0.1-beta.8",
+  "version": "0.0.1-beta.9",
   "description": "",
   "main": "./target/wasm32-wasip1/release/swc_plugin_coverage.wasm",
   "files": [
