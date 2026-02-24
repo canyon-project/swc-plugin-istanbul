@@ -1,0 +1,17 @@
+{
+  "name": "swc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "swc ./src -d dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.13.0",
+  "devDependencies": {
+    "@swc/cli": "^0.8.0",
+    "@swc/core": "^1.15.13"
+  }
+}
