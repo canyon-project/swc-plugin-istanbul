@@ -9,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export default defineConfig({
   plugins: [react({
     plugins: [
-      [path.resolve(__dirname, '..', 'target', 'wasm32-wasip1', 'release', 'swc_plugin_coverage.wasm'), {}]
+      [path.resolve(__dirname, '..', 'target', 'wasm32-wasip1', 'debug', 'swc_plugin_coverage.wasm'), {}]
     ]
   })],
 })
