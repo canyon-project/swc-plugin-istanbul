@@ -208,9 +208,11 @@ fn create_coverage_fn_decl(
     cov_fn_ident: &Ident,
     cov: &SourceCoverage,
 ) -> Stmt {
+    println!("  === create_coverage_fn_decl ===");
     let mut stmts = vec![];
 
-    // var path = "src/file.js";
+    // 1. var path = "src/file.js";
+    println!("    [1] 创建 var path = \"{}\"", filename);
     let ident_path = Ident::new("path".into(), DUMMY_SP, Default::default());
     stmts.push(create_assignment_stmt(
         &ident_path,
@@ -221,8 +223,9 @@ fn create_coverage_fn_decl(
         })),
     ));
 
-    // var hash = "...";
+    // 2. var hash = "...";
     let hash = compute_hash(filename, cov);
+    println!("    [2] 创建 var hash = \"{}\"", hash);
     let ident_hash = Ident::new("hash".into(), DUMMY_SP, Default::default());
     stmts.push(create_assignment_stmt(
         &ident_hash,
@@ -233,7 +236,8 @@ fn create_coverage_fn_decl(
         })),
     ));
 
-    // var global = new Function("return this")();
+    // 3. var global = new Function("return this")();
+    println!("    [3] 创建 var global = new Function(\"return this\")()");
     let ident_global = Ident::new("global".into(), DUMMY_SP, Default::default());
     let fn_ctor = quote_ident!(Default::default(), "Function");
     stmts.push(create_assignment_stmt(
@@ -260,7 +264,8 @@ fn create_coverage_fn_decl(
         }),
     ));
 
-    // var gcv = "__coverage__";
+    // 4. var gcv = "__coverage__";
+    println!("    [4] 创建 var gcv = \"__coverage__\"");
     let ident_gcv = Ident::new("gcv".into(), DUMMY_SP, Default::default());
     stmts.push(create_assignment_stmt(
         &ident_gcv,
@@ -271,14 +276,16 @@ fn create_coverage_fn_decl(
         })),
     ));
 
-    // var coverageData = { ... };
+    // 5. var coverageData = { ... };
+    println!("    [5] 创建 var coverageData = {{ ... }} (包含 {} 个语句)", cov.statement_map.len());
     let ident_coverage_data = Ident::new("coverageData".into(), DUMMY_SP, Default::default());
     stmts.push(create_assignment_stmt(
         &ident_coverage_data,
         create_coverage_data_object(filename, cov),
     ));
 
-    // var coverage = global[gcv] || (global[gcv] = {});
+    // 6. var coverage = global[gcv] || (global[gcv] = {});
+    println!("    [6] 创建 var coverage = global[gcv] || (global[gcv] = {{}})");
     let ident_coverage = Ident::new("coverage".into(), DUMMY_SP, Default::default());
     stmts.push(create_assignment_stmt(
         &ident_coverage,
@@ -315,9 +322,8 @@ fn create_coverage_fn_decl(
         }),
     ));
 
-    // if (!coverage[path] || coverage[path].hash !== hash) {
-    //   coverage[path] = coverageData;
-    // }
+    // 7. if (!coverage[path] || coverage[path].hash !== hash) { coverage[path] = coverageData; }
+    println!("    [7] 创建 if 语句检查并设置 coverage[path]");
     stmts.push(Stmt::If(IfStmt {
         span: DUMMY_SP,
         test: Box::new(Expr::Bin(BinExpr {
@@ -376,7 +382,8 @@ fn create_coverage_fn_decl(
         alt: None,
     }));
 
-    // var actualCoverage = coverage[path];
+    // 8. var actualCoverage = coverage[path];
+    println!("    [8] 创建 var actualCoverage = coverage[path]");
     let ident_actual_coverage = Ident::new("actualCoverage".into(), DUMMY_SP, Default::default());
     stmts.push(create_assignment_stmt(
         &ident_actual_coverage,
@@ -390,9 +397,8 @@ fn create_coverage_fn_decl(
         }),
     ));
 
-    // {
-    //   cov_xxx = function() { return actualCoverage; };
-    // }
+    // 9. { cov_xxx = function() { return actualCoverage; }; }
+    println!("    [9] 创建 {{ {} = function() {{ return actualCoverage; }}; }}", cov_fn_ident.sym);
     stmts.push(Stmt::Block(BlockStmt {
         span: DUMMY_SP,
         stmts: vec![Stmt::Expr(ExprStmt {
@@ -429,11 +435,14 @@ fn create_coverage_fn_decl(
         ..BlockStmt::dummy()
     }));
 
-    // return actualCoverage;
+    // 10. return actualCoverage;
+    println!("    [10] 创建 return actualCoverage");
     stmts.push(Stmt::Return(ReturnStmt {
         span: DUMMY_SP,
         arg: Some(Box::new(Expr::Ident(ident_actual_coverage))),
     }));
+
+    println!("    函数体包含 {} 个语句", stmts.len());
 
     // function cov_xxx() { ... }
     Stmt::Decl(Decl::Fn(FnDecl {
@@ -464,7 +473,12 @@ pub fn create_coverage_init_stmts(
     cov_fn_ident: &Ident,
     cov: &SourceCoverage,
 ) -> Vec<Stmt> {
-    vec![
+    println!("=== create_coverage_init_stmts ===");
+    println!("  filename: {}", filename);
+    println!("  cov_fn_ident: {:?}", cov_fn_ident.sym);
+    println!("  语句数量: {}", cov.statement_map.len());
+    
+    let stmts = vec![
         // function cov_xxx() { ... }
         create_coverage_fn_decl(filename, cov_fn_ident, cov),
         // cov_xxx();
@@ -478,5 +492,8 @@ pub fn create_coverage_init_stmts(
                 type_args: None,
             })),
         }),
-    ]
+    ];
+    
+    println!("  生成了 {} 个初始化语句", stmts.len());
+    stmts
 }
