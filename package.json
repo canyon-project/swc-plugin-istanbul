@@ -1,6 +1,6 @@
 {
   "name": "swc-plugin-istanbul",
-  "version": "0.0.1-beta.5",
+  "version": "0.0.1-beta.6",
   "description": "",
   "main": "./target/wasm32-wasip1/release/swc_plugin_coverage.wasm",
   "files": [
@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "build": "cargo build -p swc-plugin-coverage --target wasm32-wasip1",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build -- --release"
   },
   "keywords": [],
   "author": "",
