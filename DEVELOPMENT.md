@@ -188,3 +188,70 @@ cat dist/src/file.js
 - [Istanbul 官方文档](https://istanbul.js.org/)
 - [babel-plugin-istanbul 源码](https://github.com/istanbuljs/babel-plugin-istanbul)
 - [SWC AST 文档](https://swc.rs/docs/plugin/ecmascript/ast)
+
+## 代码结构
+
+### 模块组织
+
+```
+packages/swc-coverage-instrument/src/
+├── lib.rs                      # 公共 API
+├── source_coverage.rs          # 覆盖率数据结构
+├── coverage_template.rs        # 覆盖率初始化模板（新）
+└── visitors/
+    ├── mod.rs
+    └── coverage_visitor.rs     # 插桩 Visitor
+```
+
+### coverage_template.rs
+
+负责生成覆盖率初始化代码，包括：
+
+1. **create_coverage_data_object** - 创建覆盖率数据对象
+   ```javascript
+   {
+     path: "src/file.js",
+     statementMap: { "0": { start, end }, ... },
+     fnMap: {},
+     branchMap: {},
+     s: { "0": 0, "1": 0 },
+     f: {},
+     b: {}
+   }
+   ```
+
+2. **create_global_stmt_template** - 创建全局对象获取语句
+   ```javascript
+   var global = new Function("return this")();
+   ```
+
+3. **create_coverage_fn_decl** - 创建覆盖率函数声明
+   ```javascript
+   global.__coverage__ = global.__coverage__ || {};
+   global.__coverage__["path"] = { /* data */ };
+   cov_xxx = function() { return global.__coverage__["path"]; };
+   ```
+
+### coverage_visitor.rs
+
+负责遍历 AST 并插入计数器：
+
+1. **visit_mut_program** - 在程序顶部插入初始化代码
+2. **visit_mut_module_items** - 处理模块级语句
+3. **visit_mut_script** - 处理脚本级语句
+4. **visit_mut_stmts** - 处理块级语句
+
+### 重构优势
+
+相比旧的实现，新的结构：
+
+1. **模块化** - 模板生成逻辑独立到 coverage_template.rs
+2. **可维护** - 代码结构清晰，职责分明
+3. **可扩展** - 未来添加函数/分支覆盖率更容易
+4. **可测试** - 模板生成可以独立测试
+
+## 参考资料
+
+- [Istanbul 官方文档](https://istanbul.js.org/)
+- [babel-plugin-istanbul 源码](https://github.com/istanbuljs/babel-plugin-istanbul)
+- [SWC AST 文档](https://swc.rs/docs/plugin/ecmascript/ast)

@@ -1,4 +1,5 @@
 mod source_coverage;
+mod coverage_template;
 mod visitors;
 
 pub use source_coverage::{Range, SourceCoverage};
